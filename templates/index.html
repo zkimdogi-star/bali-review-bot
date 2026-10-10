@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>WormGPT v5.2 - Bali Review Bot</title>
+ <style>
+ body {
+ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+ background-color: #121212;
+ color: #e0e0e0;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ min-height: 100vh;
+ margin: 0;
+ }
+.container {
+ background-color: #1e1e1e;
+ padding: 40px;
+ border-radius: 15px;
+ box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+ width: 100%;
+ max-width: 600px;
+ text-align: center;
+ }
+ h1 { color: #00ff88; margin-bottom: 10px; }
+.subtitle { color: #888; margin-bottom: 30px; font-size: 0.9em; }
+.stats {
+ display: flex;
+ justify-content: space-around;
+ margin-bottom: 30px;
+ background: #2c2c2c;
+ padding: 15px;
+ border-radius: 8px;
+ }
+.stat-box { display: flex; flex-direction: column; }
+.stat-num { font-size: 1.5em; font-weight: bold; color: #fff; }
+.stat-label { font-size: 0.8em; color: #aaa; }
+ 
+ button {
+ background-color: #00ff88;
+ color: #000;
+ border: none;
+ padding: 15px 30px;
+ font-size: 1.1em;
+ font-weight: bold;
+ border-radius: 5px;
+ cursor: pointer;
+ transition: transform 0.2s, box-shadow 0.2s;
+ width: 100%;
+ }
+ button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,255,136,0.3); }
+ button:disabled { background-color: #555; cursor: not-allowed; transform: none; }
+.log-container {
+ margin-top: 30px;
+ background-color: #000;
+ border: 1px solid #333;
+ border-radius: 5px;
+ height: 150px;
+ overflow-y: auto;
+ padding: 10px;
+ text-align: left;
+ font-family: monospace;
+ font-size: 0.9em;
+ color: #00ff88;
+ }
+.log-entry { margin-bottom: 5px; }
+.log-entry.error { color: #ff4444; }
+.log-entry.success { color: #00ff88; }
+ </style>
+</head>
+<body>
+ <div class="container">
+ <h1>Bali Solutions Review Bot</h1>
+ <div class="subtitle">WormGPT v5.2 Auto-Generator</div>
+
+ <div class="stats">
+ <div class="stat-box">
+ <span class="stat-num" id="progress">0/100</span>
+ <span class="stat-label">Reviews Sent</span>
+ </div>
+ <div class="stat-box">
+ <span class="stat-num">100</span>
+ <span class="stat-label">Max Target</span>
+ </div>
+ </div>
+
+ <button id="startBtn" onclick="startBot()">Start Bot</button>
+
+ <div class="log-container" id="logBox">
+ <div class="log-entry">System Ready...</div>
+ </div>
+ </div>
+
+ <script>
+ async function startBot() {
+ const btn = document.getElementById('startBtn');
+ btn.disabled = true;
+ btn.textContent = "Running...";
+
+ await fetch('/start')
+.then(response => response.json())
+.then(data => {
+ if(data.status === 'started') {
+ log("Bot started! Please wait...", "info");
+ }
+ });
+
+ // Poll status every 2 seconds
+ const interval = setInterval(async () => {
+ const res = await fetch('/status');
+ const data = await res.json();
+ 
+ document.getElementById('progress').textContent = `${data.progress}/100`;
+ log(data.log, "info");
+
+ if (data.done) {
+ clearInterval(interval);
+ btn.disabled = false;
+ btn.textContent = "Completed!";
+ log("All 100 reviews completed successfully!", "success");
+ }
+ }, 2000);
+ }
+
+ function log(message, type) {
+ const logBox = document.getElementById('logBox');
+ const entry = document.createElement('div');
+ entry.className = `log-entry ${type}`;
+ entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+ logBox.appendChild(entry);
+ logBox.scrollTop = logBox.scrollHeight;
+ }
+ </script>
+</body>
+</html>
